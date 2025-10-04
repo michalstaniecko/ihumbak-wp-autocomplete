@@ -1,0 +1,73 @@
+/* Autocomplete suggestion styles */
+
+/* For classic editor */
+.ihumbak-suggestion {
+    color: #999;
+    font-style: italic;
+    opacity: 0.7;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* For block editor */
+.ihumbak-suggestion-block {
+    position: absolute;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    max-width: 400px;
+    z-index: 100000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+    line-height: 1.5;
+    display: none;
+}
+
+.ihumbak-suggestion-block::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #ddd;
+}
+
+.ihumbak-suggestion-block::after {
+    content: '';
+    position: absolute;
+    top: -7px;
+    left: 21px;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-bottom: 7px solid #f0f0f0;
+}
+
+/* Meta box styles */
+#ihumbak_ai_prompt {
+    font-family: monospace;
+    font-size: 13px;
+}
+
+/* Settings page styles */
+.ihumbak-settings-info {
+    background: #f0f6fc;
+    border-left: 4px solid #0073aa;
+    padding: 12px;
+    margin: 20px 0;
+}
+
+.ihumbak-settings-info h3 {
+    margin-top: 0;
+}
+
+.ihumbak-settings-info ul {
+    margin-bottom: 0;
+}
