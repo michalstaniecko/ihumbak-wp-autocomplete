@@ -82,13 +82,22 @@
         
         bindBlockEditor: function() {
             var self = this;
+            var hasLoggedAttempt = false;
             
             // Monitor changes in the block editor
             var unsubscribe = wp.data.subscribe(function() {
-                var editor = document.querySelector('.block-editor-writing-flow');
+                // Try multiple selectors for different Gutenberg versions
+                var editor = document.querySelector('.editor-styles-wrapper') || 
+                             document.querySelector('.block-editor-block-list__layout') ||
+                             document.querySelector('.edit-post-visual-editor');
+                
                 if (editor && !editor.dataset.ihumbakBound) {
                     editor.dataset.ihumbakBound = 'true';
+                    console.log('IHumbak Autocomplete: Block editor element found and bound');
                     self.bindBlockEditorEvents(editor);
+                } else if (!editor && !hasLoggedAttempt) {
+                    hasLoggedAttempt = true;
+                    console.log('IHumbak Autocomplete: Waiting for block editor element to load...');
                 }
             });
         },
