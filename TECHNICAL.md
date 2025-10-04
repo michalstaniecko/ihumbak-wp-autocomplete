@@ -175,7 +175,7 @@ Suggestion accepted or dismissed
 | `admin_init` | Register settings | ihumbak-wp-autocomplete.php |
 | `add_meta_boxes` | Add AI instructions box | ihumbak-wp-autocomplete.php |
 | `save_post` | Save AI instructions | ihumbak-wp-autocomplete.php |
-| `enqueue_block_assets` | Load JS/CSS assets (for block editor iframe) | ihumbak-wp-autocomplete.php |
+| `enqueue_block_editor_assets` | Load JS/CSS assets for block editor | ihumbak-wp-autocomplete.php |
 | `wp_ajax_ihumbak_get_completion` | Handle AJAX requests | ihumbak-wp-autocomplete.php |
 
 ## JavaScript Events

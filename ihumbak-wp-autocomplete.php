@@ -44,7 +44,7 @@ class IHumbak_WP_Autocomplete {
         add_action('admin_init', array($this, 'register_settings'));
         add_action('add_meta_boxes', array($this, 'add_ai_prompt_meta_box'));
         add_action('save_post', array($this, 'save_ai_prompt'));
-        add_action('enqueue_block_assets', array($this, 'enqueue_editor_assets'));
+        add_action('enqueue_block_editor_assets', array($this, 'enqueue_editor_assets'));
         add_action('wp_ajax_ihumbak_get_completion', array($this, 'handle_completion_request'));
         add_action('wp_ajax_ihumbak_test_api_key', array($this, 'handle_test_api_key'));
     }
