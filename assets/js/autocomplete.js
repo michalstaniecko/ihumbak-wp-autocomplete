@@ -9,6 +9,7 @@
         typingDelay: 1500, // Wait 1.5 seconds after user stops typing
         
         init: function() {
+            console.log('IHumbak Autocomplete: Initializing plugin...');
             this.createSuggestionElement();
             this.bindEvents();
         },
@@ -32,24 +33,34 @@
         initializeEditor: function() {
             var self = this;
             
+            console.log('IHumbak Autocomplete: Detecting editor type...');
+            
             // Check if classic editor is active
             if (typeof tinymce !== 'undefined') {
+                console.log('IHumbak Autocomplete: TinyMCE detected');
                 tinymce.on('AddEditor', function(e) {
                     var editor = e.editor;
                     editor.on('init', function() {
+                        console.log('IHumbak Autocomplete: Binding to classic editor');
                         self.bindClassicEditor(editor);
                     });
                 });
                 
                 // Bind to existing editors
                 tinymce.editors.forEach(function(editor) {
+                    console.log('IHumbak Autocomplete: Binding to existing editor');
                     self.bindClassicEditor(editor);
                 });
             }
             
             // Check if block editor (Gutenberg) is active
             if (typeof wp !== 'undefined' && wp.data && wp.data.select('core/editor')) {
+                console.log('IHumbak Autocomplete: Block editor (Gutenberg) detected');
                 self.bindBlockEditor();
+            }
+            
+            if (typeof tinymce === 'undefined' && (typeof wp === 'undefined' || !wp.data || !wp.data.select('core/editor'))) {
+                console.warn('IHumbak Autocomplete: No editor detected. Waiting for editor to load...');
             }
         },
         
@@ -231,6 +242,11 @@
             // Get AI prompt from meta box
             var prompt = $('#ihumbak_ai_prompt').val() || '';
             
+            console.log('IHumbak Autocomplete: Requesting suggestion...', {
+                textLength: text.length,
+                promptLength: prompt.length
+            });
+            
             $.ajax({
                 url: ihumbakAutocomplete.ajaxUrl,
                 type: 'POST',
@@ -242,12 +258,21 @@
                 },
                 success: function(response) {
                     self.isLoading = false;
+                    console.log('IHumbak Autocomplete: Response received', response);
                     if (response.success && response.data.suggestion) {
+                        console.log('IHumbak Autocomplete: Showing suggestion:', response.data.suggestion);
                         self.showSuggestion(response.data.suggestion, editor);
+                    } else if (!response.success) {
+                        console.error('IHumbak Autocomplete: Error from server:', response.data);
                     }
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     self.isLoading = false;
+                    console.error('IHumbak Autocomplete: AJAX error:', {
+                        status: status,
+                        error: error,
+                        response: xhr.responseText
+                    });
                 }
             });
         },
