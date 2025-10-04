@@ -46,6 +46,7 @@ class IHumbak_WP_Autocomplete {
         add_action('save_post', array($this, 'save_ai_prompt'));
         add_action('admin_enqueue_scripts', array($this, 'enqueue_editor_assets'));
         add_action('wp_ajax_ihumbak_get_completion', array($this, 'handle_completion_request'));
+        add_action('wp_ajax_ihumbak_test_api_key', array($this, 'handle_test_api_key'));
     }
     
     /**
@@ -113,8 +114,10 @@ class IHumbak_WP_Autocomplete {
      */
     public function render_api_key_field() {
         $api_key = get_option('ihumbak_openai_api_key', '');
-        echo '<input type="text" name="ihumbak_openai_api_key" value="' . esc_attr($api_key) . '" class="regular-text" />';
-        echo '<p class="description">' . esc_html__('Enter your OpenAI API key.', 'ihumbak-wp-autocomplete') . '</p>';
+        echo '<input type="text" id="ihumbak_openai_api_key" name="ihumbak_openai_api_key" value="' . esc_attr($api_key) . '" class="regular-text" />';
+        echo ' <button type="button" id="ihumbak_test_api_key" class="button button-secondary">' . esc_html__('Test API Key', 'ihumbak-wp-autocomplete') . '</button>';
+        echo '<span id="ihumbak_test_result" style="margin-left: 10px;"></span>';
+        echo '<p class="description">' . esc_html__('Enter your OpenAI API key. Click "Test API Key" to verify it works.', 'ihumbak-wp-autocomplete') . '</p>';
     }
     
     /**
@@ -154,6 +157,9 @@ class IHumbak_WP_Autocomplete {
         }
         
         settings_errors('ihumbak_wp_autocomplete_messages');
+        
+        // Enqueue scripts for test button
+        wp_enqueue_script('jquery');
         ?>
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
@@ -165,6 +171,45 @@ class IHumbak_WP_Autocomplete {
                 ?>
             </form>
         </div>
+        <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $('#ihumbak_test_api_key').on('click', function() {
+                var button = $(this);
+                var apiKey = $('#ihumbak_openai_api_key').val();
+                var resultSpan = $('#ihumbak_test_result');
+                
+                if (!apiKey) {
+                    resultSpan.html('<span style="color: red;">⚠ Please enter an API key first</span>');
+                    return;
+                }
+                
+                button.prop('disabled', true);
+                resultSpan.html('<span style="color: #666;">⏳ Testing...</span>');
+                
+                $.ajax({
+                    url: ajaxurl,
+                    type: 'POST',
+                    data: {
+                        action: 'ihumbak_test_api_key',
+                        nonce: '<?php echo wp_create_nonce('ihumbak_test_api_key'); ?>',
+                        api_key: apiKey
+                    },
+                    success: function(response) {
+                        button.prop('disabled', false);
+                        if (response.success) {
+                            resultSpan.html('<span style="color: green;">✓ API key is valid!</span>');
+                        } else {
+                            resultSpan.html('<span style="color: red;">✗ ' + response.data + '</span>');
+                        }
+                    },
+                    error: function() {
+                        button.prop('disabled', false);
+                        resultSpan.html('<span style="color: red;">✗ Request failed</span>');
+                    }
+                });
+            });
+        });
+        </script>
         <?php
     }
     
@@ -189,7 +234,7 @@ class IHumbak_WP_Autocomplete {
         wp_nonce_field('ihumbak_ai_prompt_nonce', 'ihumbak_ai_prompt_nonce_field');
         $prompt = get_post_meta($post->ID, '_ihumbak_ai_prompt', true);
         ?>
-        <textarea name="ihumbak_ai_prompt" rows="4" style="width: 100%;" placeholder="<?php esc_attr_e('Enter a brief description for AI to guide the autocomplete...', 'ihumbak-wp-autocomplete'); ?>"><?php echo esc_textarea($prompt); ?></textarea>
+        <textarea id="ihumbak_ai_prompt" name="ihumbak_ai_prompt" rows="4" style="width: 100%;" placeholder="<?php esc_attr_e('Enter a brief description for AI to guide the autocomplete...', 'ihumbak-wp-autocomplete'); ?>"><?php echo esc_textarea($prompt); ?></textarea>
         <p class="description"><?php esc_html_e('This prompt will help the AI understand the context of your post for better suggestions.', 'ihumbak-wp-autocomplete'); ?></p>
         <?php
     }
@@ -339,6 +384,69 @@ class IHumbak_WP_Autocomplete {
         }
         
         return new WP_Error('openai_error', 'Unexpected response from OpenAI');
+    }
+    
+    /**
+     * Handle API key test request
+     */
+    public function handle_test_api_key() {
+        check_ajax_referer('ihumbak_test_api_key', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+            return;
+        }
+        
+        $api_key = isset($_POST['api_key']) ? sanitize_text_field($_POST['api_key']) : '';
+        
+        if (empty($api_key)) {
+            wp_send_json_error('No API key provided');
+            return;
+        }
+        
+        // Test with a simple completion request
+        $test_body = array(
+            'model' => 'gpt-3.5-turbo',
+            'messages' => array(
+                array(
+                    'role' => 'user',
+                    'content' => 'Say "test successful" if you can read this.'
+                )
+            ),
+            'max_tokens' => 10
+        );
+        
+        $response = wp_remote_post('https://api.openai.com/v1/chat/completions', array(
+            'headers' => array(
+                'Authorization' => 'Bearer ' . $api_key,
+                'Content-Type' => 'application/json'
+            ),
+            'body' => json_encode($test_body),
+            'timeout' => 30
+        ));
+        
+        if (is_wp_error($response)) {
+            wp_send_json_error('Connection error: ' . $response->get_error_message());
+            return;
+        }
+        
+        $response_code = wp_remote_retrieve_response_code($response);
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        
+        if ($response_code !== 200) {
+            if (isset($body['error']['message'])) {
+                wp_send_json_error('API Error: ' . $body['error']['message']);
+            } else {
+                wp_send_json_error('API returned error code: ' . $response_code);
+            }
+            return;
+        }
+        
+        if (isset($body['choices'][0]['message']['content'])) {
+            wp_send_json_success('API key is valid and working');
+        } else {
+            wp_send_json_error('Unexpected response from OpenAI');
+        }
     }
 }
 
