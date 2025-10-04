@@ -44,7 +44,7 @@ class IHumbak_WP_Autocomplete {
         add_action('admin_init', array($this, 'register_settings'));
         add_action('add_meta_boxes', array($this, 'add_ai_prompt_meta_box'));
         add_action('save_post', array($this, 'save_ai_prompt'));
-        add_action('enqueue_block_editor_assets', array($this, 'enqueue_editor_assets'));
+        add_action('enqueue_block_assets', array($this, 'enqueue_editor_assets'));
         add_action('wp_ajax_ihumbak_get_completion', array($this, 'handle_completion_request'));
         add_action('wp_ajax_ihumbak_test_api_key', array($this, 'handle_test_api_key'));
     }
@@ -157,9 +157,6 @@ class IHumbak_WP_Autocomplete {
         }
         
         settings_errors('ihumbak_wp_autocomplete_messages');
-        
-        // Enqueue scripts for test button
-        wp_enqueue_script('jquery');
         ?>
         <div class="wrap">
             <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
@@ -172,40 +169,48 @@ class IHumbak_WP_Autocomplete {
             </form>
         </div>
         <script type="text/javascript">
-        jQuery(document).ready(function($) {
-            $('#ihumbak_test_api_key').on('click', function() {
-                var button = $(this);
-                var apiKey = $('#ihumbak_openai_api_key').val();
-                var resultSpan = $('#ihumbak_test_result');
+        document.addEventListener('DOMContentLoaded', function() {
+            const testButton = document.getElementById('ihumbak_test_api_key');
+            if (!testButton) return;
+            
+            testButton.addEventListener('click', function() {
+                const apiKeyInput = document.getElementById('ihumbak_openai_api_key');
+                const resultSpan = document.getElementById('ihumbak_test_result');
+                
+                if (!apiKeyInput || !resultSpan) return;
+                
+                const apiKey = apiKeyInput.value;
                 
                 if (!apiKey) {
-                    resultSpan.html('<span style="color: red;">⚠ Please enter an API key first</span>');
+                    resultSpan.innerHTML = '<span style="color: red;">⚠ Please enter an API key first</span>';
                     return;
                 }
                 
-                button.prop('disabled', true);
-                resultSpan.html('<span style="color: #666;">⏳ Testing...</span>');
+                testButton.disabled = true;
+                resultSpan.innerHTML = '<span style="color: #666;">⏳ Testing...</span>';
                 
-                $.ajax({
-                    url: ajaxurl,
-                    type: 'POST',
-                    data: {
-                        action: 'ihumbak_test_api_key',
-                        nonce: '<?php echo wp_create_nonce('ihumbak_test_api_key'); ?>',
-                        api_key: apiKey
-                    },
-                    success: function(response) {
-                        button.prop('disabled', false);
-                        if (response.success) {
-                            resultSpan.html('<span style="color: green;">✓ API key is valid!</span>');
-                        } else {
-                            resultSpan.html('<span style="color: red;">✗ ' + response.data + '</span>');
-                        }
-                    },
-                    error: function() {
-                        button.prop('disabled', false);
-                        resultSpan.html('<span style="color: red;">✗ Request failed</span>');
+                const formData = new FormData();
+                formData.append('action', 'ihumbak_test_api_key');
+                formData.append('nonce', '<?php echo wp_create_nonce('ihumbak_test_api_key'); ?>');
+                formData.append('api_key', apiKey);
+                
+                fetch(ajaxurl, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(response => {
+                    testButton.disabled = false;
+                    if (response.success) {
+                        resultSpan.innerHTML = '<span style="color: green;">✓ API key is valid!</span>';
+                    } else {
+                        resultSpan.innerHTML = '<span style="color: red;">✗ ' + response.data + '</span>';
                     }
+                })
+                .catch(error => {
+                    testButton.disabled = false;
+                    resultSpan.innerHTML = '<span style="color: red;">✗ Request failed</span>';
                 });
             });
         });
@@ -288,7 +293,7 @@ class IHumbak_WP_Autocomplete {
         wp_enqueue_script(
             'ihumbak-autocomplete-js',
             IHUMBAK_WP_AUTOCOMPLETE_PLUGIN_URL . 'assets/js/autocomplete.js',
-            array('jquery'),
+            array('wp-dom-ready', 'wp-data'),
             IHUMBAK_WP_AUTOCOMPLETE_VERSION,
             true
         );
