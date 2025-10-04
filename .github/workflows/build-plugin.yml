@@ -1,0 +1,47 @@
+name: Build Plugin
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build Plugin Artifact
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Create plugin directory
+        run: |
+          mkdir -p ihumbak-wp-autocomplete
+      
+      - name: Copy plugin files
+        run: |
+          # Copy main plugin file
+          cp ihumbak-wp-autocomplete.php ihumbak-wp-autocomplete/
+          
+          # Copy README
+          cp README.md ihumbak-wp-autocomplete/
+          
+          # Copy assets directory
+          cp -r assets ihumbak-wp-autocomplete/
+      
+      - name: Create plugin zip
+        run: |
+          zip -r ihumbak-wp-autocomplete.zip ihumbak-wp-autocomplete/
+      
+      - name: Upload plugin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ihumbak-wp-autocomplete
+          path: ihumbak-wp-autocomplete.zip
+          retention-days: 30

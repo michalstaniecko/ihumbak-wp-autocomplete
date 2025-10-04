@@ -20,6 +20,12 @@ This WordPress plugin provides intelligent text autocomplete suggestions while w
 
 ## Installation
 
+### Download Pre-built Plugin
+
+Download the latest plugin package from [GitHub Actions](https://github.com/michalstaniecko/ihumbak-wp-autocomplete/actions) - see [DOWNLOAD.md](DOWNLOAD.md) for detailed instructions.
+
+### Manual Installation
+
 1. Upload the plugin files to the `/wp-content/plugins/ihumbak-wp-autocomplete` directory, or install the plugin through the WordPress plugins screen directly
 2. Activate the plugin through the 'Plugins' screen in WordPress
 3. Go to Settings → IHumbak Autocomplete to configure the plugin
