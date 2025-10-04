@@ -313,23 +313,49 @@ if (e.keyCode === acceptKey) {
 
 ## Troubleshooting Guide for Developers
 
+### Using Console Logging for Debugging
+
+The plugin now includes comprehensive console logging to help diagnose issues:
+
+1. Open browser Developer Tools (F12)
+2. Go to the Console tab
+3. Look for messages prefixed with "IHumbak Autocomplete:"
+
+**Logged Events:**
+- Plugin initialization
+- Editor type detection (TinyMCE or Gutenberg)
+- Suggestion requests with context length
+- AJAX responses from server
+- Error messages with details
+
+### Testing API Key
+
+The settings page includes a "Test API Key" button that:
+- Sends a simple test request to OpenAI
+- Validates the API key format and permissions
+- Checks for available credits
+- Returns specific error messages for troubleshooting
+
 ### JavaScript not loading
 - Check `admin_enqueue_scripts` hook is firing
 - Verify file paths are correct
 - Check browser console for 404 errors
 - Ensure hook priority isn't conflicting
+- Look for "IHumbak Autocomplete: Initializing plugin..." in console
 
 ### AJAX requests failing
 - Verify nonce is being generated correctly
 - Check `wp_ajax_*` hook is registered
 - Look for PHP errors in debug.log
 - Verify user capabilities
+- Check console logs for AJAX error details
 
 ### Suggestions not appearing
-- Check API key is valid and has credits
+- Check API key is valid using the Test API Key button
 - Monitor network tab for API response
 - Verify OpenAI API is accessible
-- Check for JavaScript errors
+- Check for JavaScript errors in console
+- Ensure textarea has id="ihumbak_ai_prompt"
 
 ### Style issues
 - Verify CSS is enqueued

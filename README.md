@@ -10,6 +10,8 @@ This WordPress plugin provides intelligent text autocomplete suggestions while w
 
 - **AI-Powered Suggestions**: Get intelligent text completions using OpenAI's GPT models
 - **Settings Page**: Configure your OpenAI API key and select the model (GPT-3.5 Turbo, GPT-4, GPT-4 Turbo)
+- **API Key Testing**: Built-in test button to validate your OpenAI API key before use
+- **Debug Logging**: Console logging to help diagnose issues with autocomplete functionality
 - **AI Prompt Field**: Add context-specific instructions in each post to guide the AI
 - **Keyboard Controls**:
   - **ESC**: Cancel/dismiss the current suggestion
@@ -39,6 +41,8 @@ Navigate to **Settings → IHumbak Autocomplete** in your WordPress admin panel.
 
 **Required Settings:**
 - **OpenAI API Key**: Your OpenAI API key (get one at https://platform.openai.com/api-keys)
+  - Click the **"Test API Key"** button after entering your key to verify it works correctly
+  - The test will confirm your key is valid and has available credits
 - **OpenAI Model**: Select which GPT model to use:
   - GPT-3.5 Turbo (faster, cheaper)
   - GPT-4 (more accurate)
@@ -87,19 +91,42 @@ Each autocomplete request sends approximately 500 characters of context and requ
 
 ### Suggestions are not appearing
 
-1. Check that you've entered a valid OpenAI API key in Settings → IHumbak Autocomplete
-2. Verify your API key has available credits
+1. **Test your API key**: Go to Settings → IHumbak Autocomplete and click the "Test API Key" button to verify it's working
+2. **Check browser console**: Open your browser's Developer Tools (F12) and check the Console tab for error messages from "IHumbak Autocomplete"
 3. Ensure you've written at least 10 characters in your post
-4. Check your browser's console for any JavaScript errors
+4. Verify your API key has available credits at https://platform.openai.com/account/usage
 5. Make sure you're editing a post (not a page or custom post type)
+6. Wait 1.5 seconds after typing for the autocomplete to trigger
+
+### Debugging Steps
+
+The plugin now includes console logging to help diagnose issues:
+
+1. Open your browser's Developer Tools (F12)
+2. Go to the Console tab
+3. Start typing in the post editor
+4. Look for messages starting with "IHumbak Autocomplete:"
+   - Plugin initialization messages
+   - Editor type detection
+   - AJAX request details
+   - API responses
+   - Any error messages
 
 ### API Errors
 
 If you see errors related to the API:
-- Verify your API key is correct
+- Use the "Test API Key" button in Settings → IHumbak Autocomplete to verify your key
 - Check that your OpenAI account has available credits
-- Ensure the selected model is available to your account
-- Try switching to a different model (e.g., GPT-3.5 Turbo)
+- Ensure the selected model is available to your account (some models require special access)
+- Try switching to a different model (e.g., GPT-3.5 Turbo is available to all users)
+
+### Common Error Messages
+
+- **"OpenAI API key not configured"**: You need to enter your API key in the plugin settings
+- **"No text provided"**: Write at least 10 characters before autocomplete will trigger
+- **"Unauthorized"** or **"Invalid Authentication"**: Your API key is incorrect or expired
+- **"Insufficient quota"**: Your OpenAI account is out of credits
+- **"Model not found"**: The selected model is not available to your account
 
 ## Development
 
