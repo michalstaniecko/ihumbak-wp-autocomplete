@@ -35,13 +35,9 @@ jobs:
           # Copy assets directory
           cp -r assets ihumbak-wp-autocomplete/
       
-      - name: Create plugin zip
-        run: |
-          zip -r ihumbak-wp-autocomplete.zip ihumbak-wp-autocomplete/
-      
       - name: Upload plugin artifact
         uses: actions/upload-artifact@v4
         with:
           name: ihumbak-wp-autocomplete
-          path: ihumbak-wp-autocomplete.zip
+          path: ihumbak-wp-autocomplete/
           retention-days: 30
